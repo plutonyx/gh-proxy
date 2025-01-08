@@ -1,4 +1,4 @@
-REPOSITORY=chusri
+REPOSITORY=plutonyx
 GIT_SHA_FETCH := $(shell git rev-parse HEAD | cut -c 1-8)
 IMAGE_NAME := gh-proxy
 DOCKERFILE := ./Dockerfile
