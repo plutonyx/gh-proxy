@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,8 +49,8 @@ func handleDownload(c *gin.Context) {
 		contentType = "application/octet-stream"
 	}
 
-	// You could derive a filename dynamically; here we hardcode "file.pdf"
-	fileName := "file.pdf"
+	// Extract the filename from the URL
+	fileName := urlPathToFilename(remoteURL)
 
 	// Set headers so the client knows how to handle/label the streamed file
 	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, fileName))
@@ -64,4 +65,21 @@ func handleDownload(c *gin.Context) {
 		resp.Body,
 		nil,
 	)
+}
+
+func urlPathToFilename(url string) string {
+	// Extract the last part of the URL path as the filename
+	// e.g. "https://example.com/path/to/file.txt" -> "file.txt"
+	// This is a naive implementation and may not work for all URLs.
+	// For production use, you may want to use a more robust method.
+	// For example, you could use the "Content-Disposition" header from the upstream response.
+	// Or you could use a library like "github.com/golang/url" to parse the URL.
+	// Or you could use a more robust regular expression.
+	// This is just a simple example.
+	for i := len(url) - 1; i >= 0; i-- {
+		if url[i] == '/' {
+			return url[i+1:]
+		}
+	}
+	return fmt.Sprintf("file-%d", time.Now().Unix())
 }
