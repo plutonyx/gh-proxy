@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +12,13 @@ import (
 
 func main() {
 
-	router := gin.Default()
-	router.Any("/download/*proxyPath", handleDownload)
+	r := gin.Default()
+	r.Any("/show/*targetUrl", showMeTheContent)
+	r.Any("/download/*proxyPath", handleDownload)
 
 	srv := &http.Server{
 		Addr:    ":8080",
-		Handler: router,
+		Handler: r,
 	}
 
 	if err := srv.ListenAndServe(); err != nil {
@@ -82,4 +84,49 @@ func urlPathToFilename(url string) string {
 		}
 	}
 	return fmt.Sprintf("file-%d", time.Now().Unix())
+}
+
+func showMeTheContent(c *gin.Context) {
+	targetUrl := c.Param("targetUrl")
+	if targetUrl == "" {
+		c.String(http.StatusBadRequest, "No targetUrl provided")
+		return
+	}
+	// trim the leading slash
+	targetUrl = targetUrl[1:]
+
+	validUrlRegex := "^(http|https)://"
+	if !regexp.MustCompile(validUrlRegex).MatchString(targetUrl) {
+		c.String(http.StatusBadRequest, "Invalid URL")
+		return
+	}
+
+	// Perform an HTTP GET to retrieve the remote file
+	resp, err := http.Get(targetUrl)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Error retrieving file: %v", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		c.String(resp.StatusCode, "Remote server returned status code: %d", resp.StatusCode)
+		return
+	}
+
+	// Read the Content-Type from the upstream response
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	// return the content
+	c.DataFromReader(
+		http.StatusOK,
+		resp.ContentLength, // The expected content length, if known
+		contentType,
+		resp.Body,
+		nil,
+	)
 }
