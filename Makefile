@@ -15,7 +15,7 @@ build: clean
 	@go build -a -installsuffix cgo -o ./bin/app .
 
 .PHONY: package
-package: build
+package: 
 	@echo "Building image $(REPOSITORY)/$(IMAGE_NAME):$(GIT_SHA_FETCH)"
 	@echo "Using Dockerfile: $(DOCKERFILE)"
 	docker build -t $(REPOSITORY)/$(IMAGE_NAME):$(GIT_SHA_FETCH) -f $(DOCKERFILE) .
