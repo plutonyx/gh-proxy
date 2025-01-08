@@ -4,7 +4,7 @@ IMAGE_NAME := gh-proxy
 DOCKERFILE := ./Dockerfile
 
 .PHONY: all
-all: package
+all: publish
 
 .PHONY: clean
 clean:
