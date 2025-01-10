@@ -1,18 +1,31 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
+//go:embed install.sh
+var installer string
 
+func main() {
+	isDev := os.Getenv("ENV") == "dev"
+	if !isDev {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
+	r.GET("/install.sh", func(c *gin.Context) {
+		contentType := "text/x-shellscript"
+		c.Data(http.StatusOK, contentType, []byte(installer))
+	})
+
 	r.Any("/show/*targetUrl", showMeTheContent)
 	r.Any("/download/*proxyPath", handleDownload)
 
