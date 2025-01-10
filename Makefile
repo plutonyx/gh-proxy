@@ -1,6 +1,7 @@
 REPOSITORY=plutonyx
 GIT_SHA_FETCH := $(shell git rev-parse HEAD | cut -c 1-8)
-IMAGE_NAME := gh-proxy
+APP_NAME := gh-proxy
+IMAGE_NAME := ${APP_NAME}
 DOCKERFILE := ./Dockerfile
 
 .PHONY: all
