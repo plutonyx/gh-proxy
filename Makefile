@@ -1,6 +1,7 @@
 REPOSITORY=plutonyx
 GIT_SHA_FETCH := $(shell git rev-parse HEAD | cut -c 1-8)
-IMAGE_NAME := gh-proxy
+APP_NAME := gh-proxy
+IMAGE_NAME := ${APP_NAME}
 DOCKERFILE := ./Dockerfile
 
 .PHONY: all
@@ -24,3 +25,22 @@ package:
 publish: package
 	@echo "Pushing image $(REPOSITORY)/$(IMAGE_NAME):$(GIT_SHA_FETCH)"
 	docker push $(REPOSITORY)/$(IMAGE_NAME):$(GIT_SHA_FETCH)
+
+.PHONY: test
+test:
+	@go test -v ./...
+
+
+# --- release --- 
+.PHONY: clean release
+clean:
+	rm -rf bin/*
+release: clean
+	GOOS=darwin     GOARCH=amd64    go build -ldflags '-s' -o bin/${APP_NAME}-darwin-amd64       .
+	GOOS=darwin     GOARCH=arm64    go build -ldflags '-s' -o bin/${APP_NAME}-darwin-arm64       .
+	GOOS=linux      GOARCH=386      go build -ldflags '-s' -o bin/${APP_NAME}-linux-386          .
+	GOOS=linux      GOARCH=amd64    go build -ldflags '-s' -o bin/${APP_NAME}-linux-amd64        .
+	GOOS=linux      GOARCH=arm      go build -ldflags '-s' -o bin/${APP_NAME}-linux-arm          .
+	GOOS=linux      GOARCH=arm64    go build -ldflags '-s' -o bin/${APP_NAME}-linux-arm64        .
+	GOOS=windows    GOARCH=386      go build -ldflags '-s' -o bin/${APP_NAME}-windows-386.exe    .
+	GOOS=windows    GOARCH=amd64    go build -ldflags '-s' -o bin/${APP_NAME}-windows-amd64.exe  .
